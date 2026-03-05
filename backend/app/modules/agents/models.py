@@ -10,17 +10,16 @@ from app.db.session import Base
 
 
 class AgentStrategyType(str, enum.Enum):
-    trading = "trading"
-    marketing = "marketing"
-    research = "research"
+    grid_trading = "grid_trading"
+    momentum = "momentum"
     arbitrage = "arbitrage"
-    social = "social"
+    ai_trader = "ai_trader"
 
 
 class AgentStatus(str, enum.Enum):
     created = "created"
     running = "running"
-    stopped = "stopped"
+    paused = "paused"
 
 
 class ManagedAgent(Base):
@@ -31,8 +30,7 @@ class ManagedAgent(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     strategy_type: Mapped[AgentStrategyType] = mapped_column(Enum(AgentStrategyType, name="agentstrategytype"), nullable=False)
-    status: Mapped[AgentStatus] = mapped_column(Enum(AgentStatus, name="agentstatus"), default=AgentStatus.created, nullable=False)
-    docker_container_id: Mapped[str | None] = mapped_column(String(128))
+    initial_capital: Mapped[float] = mapped_column(Numeric(18, 4), nullable=False, default=0)
     wallet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("wallets.id"), nullable=False)
-    revenue_generated: Mapped[float] = mapped_column(Numeric(18, 4), default=0, nullable=False)
+    status: Mapped[AgentStatus] = mapped_column(Enum(AgentStatus, name="agentstatus"), default=AgentStatus.created, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)

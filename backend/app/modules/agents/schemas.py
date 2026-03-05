@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.modules.agents.models import AgentStatus, AgentStrategyType
 
@@ -10,6 +10,11 @@ class AgentCreateRequest(BaseModel):
     name: str
     description: str | None = None
     strategy_type: AgentStrategyType
+    initial_capital: float = Field(gt=0)
+
+
+class AgentActionRequest(BaseModel):
+    agent_id: UUID
 
 
 class AgentRead(BaseModel):
@@ -18,10 +23,9 @@ class AgentRead(BaseModel):
     name: str
     description: str | None
     strategy_type: AgentStrategyType
-    status: AgentStatus
-    docker_container_id: str | None
+    initial_capital: float
     wallet_id: UUID
-    revenue_generated: float
+    status: AgentStatus
     created_at: datetime
 
     class Config:

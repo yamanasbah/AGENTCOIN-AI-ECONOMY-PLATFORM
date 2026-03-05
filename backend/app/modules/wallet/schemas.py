@@ -3,32 +3,36 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.modules.wallet.models import TransactionType
+from app.modules.wallet.models import TokenTransactionType, WalletOwnerType
 
 
 class WalletRead(BaseModel):
     id: UUID
-    user_id: int
-    agc_balance: float
-    staked_balance: float
+    owner_type: WalletOwnerType
+    owner_id: str
+    balance: float
+    locked_balance: float
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class WalletDepositRequest(BaseModel):
+    amount: float = Field(gt=0)
+
+
+class WalletTransferRequest(BaseModel):
+    recipient_wallet_id: UUID
+    amount: float = Field(gt=0)
 
 
 class WalletTransactionRead(BaseModel):
     id: UUID
     wallet_id: UUID
-    type: TransactionType
     amount: float
-    reason: str
+    type: TokenTransactionType
     created_at: datetime
 
     class Config:
         from_attributes = True
-
-
-class WalletTransferRequest(BaseModel):
-    amount: float = Field(gt=0)
-    recipient_user_id: int
