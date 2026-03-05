@@ -3,6 +3,9 @@ import Link from 'next/link';
 const links = [
   { href: '/', label: 'Overview' },
   { href: '/agents', label: 'Agent Factory' },
+  { href: '/agents/create', label: 'Create Agent' },
+  { href: '/wallet', label: 'Wallet' },
+  { href: '/token', label: 'Token' },
   { href: '/marketplace', label: 'Marketplace' },
   { href: '/dashboard', label: 'Monitoring' },
   { href: '/admin', label: 'Admin' },
