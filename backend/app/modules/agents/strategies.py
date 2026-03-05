@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from app.modules.agents.models import AgentStrategyType, ManagedAgent
+from app.modules.agents.models import AgentType, ManagedAgent
 
 
 class StrategyBase(ABC):
@@ -11,51 +11,40 @@ class StrategyBase(ABC):
     def execute(self) -> float:
         pass
 
-    @abstractmethod
-    def risk_check(self) -> bool:
-        pass
-
-    @abstractmethod
-    def generate_signal(self) -> float:
-        pass
-
 
 class BaseSimpleStrategy(StrategyBase):
-    multiplier = 0.01
-
-    def generate_signal(self) -> float:
-        return float(self.agent.initial_capital) * self.multiplier
-
-    def risk_check(self) -> bool:
-        return float(self.agent.initial_capital) > 0 and self.agent.status.value == "running"
+    multiplier = 1.0
 
     def execute(self) -> float:
-        if not self.risk_check():
-            return 0.0
-        return max(self.generate_signal(), 0.0)
+        return self.multiplier
 
 
-class GridTradingStrategy(BaseSimpleStrategy):
-    multiplier = 0.012
+class MarketingStrategy(BaseSimpleStrategy):
+    multiplier = 1.1
 
 
-class MomentumStrategy(BaseSimpleStrategy):
-    multiplier = 0.018
+class TradingStrategy(BaseSimpleStrategy):
+    multiplier = 1.4
 
 
-class ArbitrageStrategy(BaseSimpleStrategy):
-    multiplier = 0.01
+class ResearchStrategy(BaseSimpleStrategy):
+    multiplier = 1.0
 
 
-class AITraderStrategy(BaseSimpleStrategy):
-    multiplier = 0.02
+class AutomationStrategy(BaseSimpleStrategy):
+    multiplier = 1.2
+
+
+class CustomStrategy(BaseSimpleStrategy):
+    multiplier = 1.0
 
 
 def get_strategy(agent: ManagedAgent) -> StrategyBase:
     mapping = {
-        AgentStrategyType.grid_trading: GridTradingStrategy,
-        AgentStrategyType.momentum: MomentumStrategy,
-        AgentStrategyType.arbitrage: ArbitrageStrategy,
-        AgentStrategyType.ai_trader: AITraderStrategy,
+        AgentType.marketing_agent: MarketingStrategy,
+        AgentType.trading_agent: TradingStrategy,
+        AgentType.research_agent: ResearchStrategy,
+        AgentType.automation_agent: AutomationStrategy,
+        AgentType.custom_agent: CustomStrategy,
     }
-    return mapping[agent.strategy_type](agent)
+    return mapping[agent.agent_type](agent)

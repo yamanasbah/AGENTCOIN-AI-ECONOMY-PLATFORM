@@ -25,21 +25,22 @@ class Wallet(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
 
-class TokenTransactionType(str, enum.Enum):
-    mint = "mint"
-    burn = "burn"
-    reward = "reward"
+class TransactionType(str, enum.Enum):
     transfer = "transfer"
-    fee = "fee"
+    stake = "stake"
+    unstake = "unstake"
+    execution = "execution"
+    marketplace_purchase = "marketplace_purchase"
 
 
-class TokenTransaction(Base):
-    __tablename__ = "token_transactions"
+class Transaction(Base):
+    __tablename__ = "transactions"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    wallet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("wallets.id"), nullable=False, index=True)
+    from_wallet_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("wallets.id"), nullable=True, index=True)
+    to_wallet_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("wallets.id"), nullable=True, index=True)
     amount: Mapped[float] = mapped_column(Numeric(18, 4), nullable=False)
-    type: Mapped[TokenTransactionType] = mapped_column(Enum(TokenTransactionType, name="tokentransactiontype"), nullable=False)
+    type: Mapped[TransactionType] = mapped_column(Enum(TransactionType, name="transactiontype"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
 
@@ -49,5 +50,6 @@ class Stake(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     wallet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("wallets.id"), nullable=False, index=True)
     amount: Mapped[float] = mapped_column(Numeric(18, 4), nullable=False)
-    start_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     reward_rate: Mapped[float] = mapped_column(Numeric(8, 4), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    unlock_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)

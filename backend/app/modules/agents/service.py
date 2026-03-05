@@ -1,25 +1,37 @@
+from uuid import UUID
+
 from sqlalchemy.orm import Session
 
 from app.modules.agents.models import AgentStatus, ManagedAgent
 from app.modules.wallet.models import WalletOwnerType
 from app.modules.wallet.service import WalletService
-from app.workers.tasks import run_agent_strategy
+from app.workers.tasks import run_agent
 
 
 class AgentService:
     @staticmethod
-    def create_agent(db: Session, user_id: int, name: str, description: str | None, strategy_type, initial_capital: float):
-        user_wallet = WalletService.get_or_create_wallet(db, WalletOwnerType.user, str(user_id))
-        WalletService.withdraw(db, user_wallet, initial_capital)
-
-        agent_wallet = WalletService.create_wallet(db, WalletOwnerType.agent, "pending", initial_balance=initial_capital)
+    def create_agent(
+        db: Session,
+        tenant_id: str,
+        user_id: int,
+        name: str,
+        description: str | None,
+        agent_type,
+        system_prompt: str,
+        capabilities: dict,
+        is_public: bool,
+    ) -> ManagedAgent:
+        agent_wallet = WalletService.create_wallet(db, WalletOwnerType.agent, "pending", initial_balance=0)
         agent = ManagedAgent(
+            tenant_id=tenant_id,
             owner_user_id=user_id,
             name=name,
             description=description,
-            strategy_type=strategy_type,
-            initial_capital=initial_capital,
-            status=AgentStatus.created,
+            agent_type=agent_type,
+            system_prompt=system_prompt,
+            capabilities=capabilities,
+            is_public=is_public,
+            status=AgentStatus.idle,
             wallet_id=agent_wallet.id,
         )
         db.add(agent)
@@ -28,16 +40,32 @@ class AgentService:
         return agent
 
     @staticmethod
-    def start_agent(agent: ManagedAgent):
-        agent.status = AgentStatus.running
-        run_agent_strategy.delay(str(agent.id))
+    def list_agents(db: Session, tenant_id: str, user_id: int):
+        return (
+            db.query(ManagedAgent)
+            .filter(ManagedAgent.tenant_id == tenant_id, ManagedAgent.owner_user_id == user_id)
+            .order_by(ManagedAgent.created_at.desc())
+            .all()
+        )
+
+    @staticmethod
+    def get_agent(db: Session, tenant_id: str, user_id: int, agent_id: UUID) -> ManagedAgent | None:
+        return (
+            db.query(ManagedAgent)
+            .filter(ManagedAgent.id == agent_id, ManagedAgent.tenant_id == tenant_id, ManagedAgent.owner_user_id == user_id)
+            .first()
+        )
+
+    @staticmethod
+    def update_agent(agent: ManagedAgent, updates: dict) -> ManagedAgent:
+        for field, value in updates.items():
+            setattr(agent, field, value)
         return agent
 
     @staticmethod
-    def pause_agent(agent: ManagedAgent):
-        agent.status = AgentStatus.paused
-        return agent
+    def delete_agent(db: Session, agent: ManagedAgent) -> None:
+        db.delete(agent)
 
     @staticmethod
-    def list_agents(db: Session, user_id: int):
-        return db.query(ManagedAgent).filter(ManagedAgent.owner_user_id == user_id).order_by(ManagedAgent.created_at.desc()).all()
+    def trigger_execution(agent_id: UUID) -> None:
+        run_agent.delay(str(agent_id))
