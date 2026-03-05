@@ -3,29 +3,39 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.modules.agents.models import AgentStatus, AgentStrategyType
+from app.modules.agents.models import AgentStatus, AgentType
 
 
 class AgentCreateRequest(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=120)
     description: str | None = None
-    strategy_type: AgentStrategyType
-    initial_capital: float = Field(gt=0)
+    agent_type: AgentType
+    system_prompt: str = Field(min_length=1)
+    capabilities: dict = Field(default_factory=dict)
+    is_public: bool = False
 
 
-class AgentActionRequest(BaseModel):
-    agent_id: UUID
+class AgentUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    description: str | None = None
+    system_prompt: str | None = Field(default=None, min_length=1)
+    capabilities: dict | None = None
+    is_public: bool | None = None
+    status: AgentStatus | None = None
 
 
 class AgentRead(BaseModel):
     id: UUID
+    tenant_id: str
     owner_user_id: int
     name: str
     description: str | None
-    strategy_type: AgentStrategyType
-    initial_capital: float
-    wallet_id: UUID
+    agent_type: AgentType
+    system_prompt: str
+    capabilities: dict
+    is_public: bool
     status: AgentStatus
+    wallet_id: UUID
     created_at: datetime
 
     class Config:

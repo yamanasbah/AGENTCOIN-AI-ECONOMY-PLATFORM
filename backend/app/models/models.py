@@ -88,16 +88,6 @@ class EquitySnapshot(Base):
     captured_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
-class Stake(Base):
-    __tablename__ = "stakes"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    agent_id: Mapped[int] = mapped_column(ForeignKey("agents.id"), nullable=False)
-    amount: Mapped[float] = mapped_column(Float, nullable=False)
-    tx_hash: Mapped[str | None] = mapped_column(String(120))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
 
 class Commission(Base):
     __tablename__ = "commissions"
@@ -125,9 +115,10 @@ class MarketplaceListing(Base):
     __tablename__ = "marketplace_listings"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    agent_id: Mapped[int] = mapped_column(ForeignKey("agents.id"), nullable=False)
-    revenue_share_percent: Mapped[float] = mapped_column(Float, default=10.0)
-    price_per_month_token: Mapped[float] = mapped_column(Float, default=20.0)
+    agent_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    price_per_run: Mapped[float] = mapped_column(Float, default=1.0)
+    rating: Mapped[float] = mapped_column(Float, default=0.0)
+    usage_count: Mapped[int] = mapped_column(Integer, default=0)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
