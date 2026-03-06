@@ -1,4 +1,4 @@
-import { Agent, AgentLeaderboardEntry, AgentRun, APIKey, CreatorStats, MarketplaceAgent, NotificationItem, PlatformAnalytics, RuntimeLog, RuntimeRunResponse, StakingPosition, Transaction, WalletBalance } from '@/types';
+import { Agent, AgentLeaderboardEntry, AgentRun, APIKey, CreatorStats, InstalledAgent, MarketplaceAgent, NotificationItem, PlatformAnalytics, RuntimeLog, RuntimeRunResponse, StakingPosition, StoreAgent, StoreReview, Transaction, WalletBalance } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
 
@@ -47,6 +47,23 @@ export const API = {
 
   getAgents: async () => api.get<Agent[]>('/api/v1/agents'),
   getAgent: async (id: string) => api.get<Agent>(`/api/v1/agents/${id}`),
+
+  publishAgent: async (id: string, payload: { title?: string; description?: string; category: string; tags: string[]; price_per_run: number; price_per_month: number }) => api.post(`/api/v1/agents/${id}/publish`, payload),
+  unpublishAgent: async (id: string) => api.post(`/api/v1/agents/${id}/unpublish`, {}),
+  getStoreAgents: async (params?: { category?: string; price?: number; rating?: number; popularity?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.category) q.set('category', params.category);
+    if (params?.price) q.set('price', String(params.price));
+    if (params?.rating) q.set('rating', String(params.rating));
+    if (params?.popularity) q.set('popularity', params.popularity);
+    const query = q.toString();
+    return api.get<StoreAgent[]>(`/api/v1/store/agents${query ? `?${query}` : ''}`);
+  },
+  getStoreAgent: async (id: string | number) => api.get<StoreAgent>(`/api/v1/store/agents/${id}`),
+  installStoreAgent: async (agent_id: string) => api.post<InstalledAgent>(`/api/v1/store/install/${agent_id}`),
+  getMyInstalledAgents: async () => api.get<InstalledAgent[]>('/api/v1/store/my-agents'),
+  reviewStoreAgent: async (payload: { agent_id: string; rating: number; review?: string }) => api.post<StoreReview>('/api/v1/store/review', payload),
+  getStoreReviews: async (agent_id: string) => api.get<StoreReview[]>(`/api/v1/store/reviews/${agent_id}`),
   getAgentLeaderboard: async () => api.get<AgentLeaderboardEntry[]>('/api/v1/agents/leaderboard'),
   getCreatorStats: async () => api.get<CreatorStats>('/api/v1/agents/creator/stats'),
   createAgent: async (payload: Record<string, unknown>) => api.post('/api/v1/agents/create', payload),

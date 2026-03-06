@@ -19,25 +19,19 @@ class ProfitEngine:
     @staticmethod
     def split_revenue(amount: float | Decimal) -> dict[str, Decimal]:
         amount_decimal = Decimal(str(amount))
-        owner_amount = (amount_decimal * ProfitEngine.OWNER_SHARE).quantize(Decimal("0.0001"))
-        platform_amount = (amount_decimal * ProfitEngine.PLATFORM_SHARE).quantize(Decimal("0.0001"))
-        treasury_amount = amount_decimal - owner_amount - platform_amount
-        NotificationService.create_notification(
-            db,
-            agent.owner_user_id,
-            "Agent generated revenue",
-            f"Agent '{agent.name}' generated {amount_decimal} AGC in revenue.",
-        )
+        creator_amount = (amount_decimal * ProfitEngine.OWNER_SHARE).quantize(Decimal("0.0001"))
+        treasury_amount = (amount_decimal * ProfitEngine.PLATFORM_SHARE).quantize(Decimal("0.0001"))
+        infrastructure_amount = amount_decimal - creator_amount - treasury_amount
 
         return {
-            "owner": owner_amount,
-            "platform": platform_amount,
+            "creator": creator_amount,
             "treasury": treasury_amount,
+            "infrastructure": infrastructure_amount,
         }
 
     @staticmethod
     def ensure_platform_wallet(db: Session):
-        return WalletService.get_or_create_wallet(db, WalletOwnerType.user, "platform")
+        return WalletService.get_or_create_wallet(db, WalletOwnerType.user, "agent_infra")
 
     @staticmethod
     def ensure_treasury_wallet(db: Session):
@@ -66,14 +60,7 @@ class ProfitEngine:
             db,
             from_wallet=payer_wallet,
             to_wallet=owner_wallet,
-            amount=float(split["owner"]),
-            tx_type=TransactionType.execution,
-        )
-        WalletService.transfer_tokens(
-            db,
-            from_wallet=payer_wallet,
-            to_wallet=platform_wallet,
-            amount=float(split["platform"]),
+            amount=float(split["creator"]),
             tx_type=TransactionType.execution,
         )
         WalletService.transfer_tokens(
@@ -81,6 +68,13 @@ class ProfitEngine:
             from_wallet=payer_wallet,
             to_wallet=treasury_wallet,
             amount=float(split["treasury"]),
+            tx_type=TransactionType.execution,
+        )
+        WalletService.transfer_tokens(
+            db,
+            from_wallet=payer_wallet,
+            to_wallet=platform_wallet,
+            amount=float(split["infrastructure"]),
             tx_type=TransactionType.execution,
         )
 
@@ -93,10 +87,10 @@ class ProfitEngine:
 
         return {
             "amount": float(amount_decimal),
-            "owner": float(split["owner"]),
-            "platform": float(split["platform"]),
+            "creator": float(split["creator"]),
             "treasury": float(split["treasury"]),
-            "owner_wallet_id": str(owner_wallet.id),
-            "platform_wallet_id": str(platform_wallet.id),
+            "infrastructure": float(split["infrastructure"]),
+            "creator_wallet_id": str(owner_wallet.id),
+            "infrastructure_wallet_id": str(platform_wallet.id),
             "treasury_wallet_id": str(treasury_wallet.id),
         }

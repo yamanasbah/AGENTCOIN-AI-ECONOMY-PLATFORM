@@ -138,3 +138,32 @@ export function useCreateApiKey() {
 export function useDeleteApiKey() {
   return useMutationState(API.deleteApiKey);
 }
+
+
+export function useStoreAgents(params?: { category?: string; price?: number; rating?: number; popularity?: string }) {
+  return useQueryState(() => API.getStoreAgents(params), [JSON.stringify(params || {})]);
+}
+
+export function useStoreAgent(id: string) {
+  return useQueryState(() => API.getStoreAgent(id), [id]);
+}
+
+export function useInstallStoreAgent() {
+  return useMutationState(API.installStoreAgent);
+}
+
+export function useMyInstalledAgents() {
+  return useQueryState(API.getMyInstalledAgents, []);
+}
+
+export function useReviewStoreAgent() {
+  return useMutationState(API.reviewStoreAgent);
+}
+
+export function useStoreReviews(agentId: string) {
+  return useQueryState(() => (agentId ? API.getStoreReviews(agentId) : Promise.resolve([])), [agentId]);
+}
+
+export function usePublishAgent() {
+  return useMutationState(({ id, payload }: { id: string; payload: { title?: string; description?: string; category: string; tags: string[]; price_per_run: number; price_per_month: number } }) => API.publishAgent(id, payload));
+}

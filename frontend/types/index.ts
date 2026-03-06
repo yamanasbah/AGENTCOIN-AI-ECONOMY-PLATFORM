@@ -25,6 +25,39 @@ export type MarketplaceAgent = {
   usage_count: number;
 };
 
+export type StoreAgent = {
+  id: number;
+  agent_id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  price_per_run: number;
+  price_per_month: number;
+  rating: number;
+  usage_count: number;
+  created_at: string;
+  creator_user_id: number;
+  creator_username: string;
+  total_runs: number;
+};
+
+export type InstalledAgent = {
+  id: number;
+  user_id: number;
+  agent_id: string;
+  installed_at: string;
+  active: boolean;
+};
+
+export type StoreReview = {
+  id: number;
+  agent_id: string;
+  user_id: number;
+  rating: number;
+  review?: string;
+  created_at: string;
+};
+
 export type WalletBalance = {
   balance: number;
   locked?: number;

@@ -9,6 +9,7 @@ from app.modules.agents.schemas import (
     AgentAsyncRunResponse,
     AgentCreateRequest,
     AgentLeaderboardEntry,
+    AgentPublishRequest,
     AgentRead,
     AgentRunRequest,
     AgentRunResponse,
@@ -16,6 +17,8 @@ from app.modules.agents.schemas import (
     CreatorStatsResponse,
 )
 from app.modules.agents.service import AgentService
+
+from app.modules.agents.store_service import AgentStoreService
 
 router = APIRouter()
 
@@ -110,3 +113,42 @@ def run_agent_async_endpoint(
     agent = _get_owned_agent(db, current_user, agent_id)
     task = AgentService.enqueue_task(db, agent, payload.input, "manual_run")
     return AgentAsyncRunResponse(task_id=task.id, status=task.status)
+
+
+@router.post("/{agent_id}/publish", response_model=AgentRead)
+def publish_agent(
+    agent_id: UUID,
+    payload: AgentPublishRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    agent = _get_owned_agent(db, current_user, agent_id)
+    try:
+        AgentStoreService.publish_agent(
+            db,
+            agent,
+            title=payload.title or agent.name,
+            description=payload.description or agent.description,
+            category=payload.category,
+            tags=payload.tags,
+            price_per_run=payload.price_per_run,
+            price_per_month=payload.price_per_month,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    db.commit()
+    db.refresh(agent)
+    return agent
+
+
+@router.post("/{agent_id}/unpublish", response_model=AgentRead)
+def unpublish_agent(
+    agent_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    agent = _get_owned_agent(db, current_user, agent_id)
+    AgentStoreService.unpublish_agent(db, agent)
+    db.commit()
+    db.refresh(agent)
+    return agent
