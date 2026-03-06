@@ -51,3 +51,20 @@ class AgentRunResponse(BaseModel):
     result: str
     tokens_used: int
     execution_cost: float
+
+
+class AgentLeaderboardEntry(BaseModel):
+    id: UUID
+    name: str
+    owner_user_id: int
+    total_earnings: float
+    total_runs: int
+
+    class Config:
+        from_attributes = True
+
+
+class CreatorStatsResponse(BaseModel):
+    total_agents: int
+    total_earnings: float
+    total_runs: int

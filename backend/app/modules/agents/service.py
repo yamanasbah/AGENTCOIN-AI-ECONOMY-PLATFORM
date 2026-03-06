@@ -75,3 +75,26 @@ class AgentService:
     def run_agent(db: Session, agent: ManagedAgent, user_input: str, caller_user_id: int | None = None):
         runtime_service = AgentRuntimeService(db)
         return runtime_service.run_agent(agent.id, user_input, caller_user_id=caller_user_id)
+
+
+    @staticmethod
+    def leaderboard(db: Session, limit: int = 20):
+        return (
+            db.query(ManagedAgent)
+            .order_by(ManagedAgent.total_earnings.desc(), ManagedAgent.total_runs.desc())
+            .limit(limit)
+            .all()
+        )
+
+    @staticmethod
+    def creator_stats(db: Session, tenant_id: str, user_id: int) -> dict[str, float | int]:
+        agents = (
+            db.query(ManagedAgent)
+            .filter(ManagedAgent.tenant_id == tenant_id, ManagedAgent.owner_user_id == user_id)
+            .all()
+        )
+        return {
+            "total_agents": len(agents),
+            "total_earnings": float(sum(float(agent.total_earnings or 0) for agent in agents)),
+            "total_runs": int(sum(int(agent.total_runs or 0) for agent in agents)),
+        }

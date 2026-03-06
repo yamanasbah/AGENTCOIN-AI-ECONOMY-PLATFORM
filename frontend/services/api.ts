@@ -1,4 +1,4 @@
-import { Agent, AgentRun, MarketplaceAgent, RuntimeLog, RuntimeRunResponse, StakingPosition, Transaction, WalletBalance } from '@/types';
+import { Agent, AgentLeaderboardEntry, AgentRun, CreatorStats, MarketplaceAgent, RuntimeLog, RuntimeRunResponse, StakingPosition, Transaction, WalletBalance } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
 
@@ -27,6 +27,8 @@ export const api = {
 export const API = {
   getAgents: async () => api.get<Agent[]>('/api/v1/agents'),
   getAgent: async (id: string) => api.get<Agent>(`/api/v1/agents/${id}`),
+  getAgentLeaderboard: async () => api.get<AgentLeaderboardEntry[]>('/api/v1/agents/leaderboard'),
+  getCreatorStats: async () => api.get<CreatorStats>('/api/v1/agents/creator/stats'),
   createAgent: async (payload: Record<string, unknown>) => api.post('/api/v1/agents/create', payload),
   runAgent: async (id: string, input: string) => api.post<AgentRun>(`/api/v1/agents/${id}/run`, { input }),
 

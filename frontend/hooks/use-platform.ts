@@ -104,3 +104,12 @@ export function useRunAgentRuntime() {
 export function useRuntimeLogs(agentId: string) {
   return useQueryState(() => API.getRuntimeLogs(agentId), [agentId]);
 }
+
+
+export function useLeaderboard() {
+  return useQueryState(API.getAgentLeaderboard, []);
+}
+
+export function useCreatorStats() {
+  return useQueryState(API.getCreatorStats, []);
+}
