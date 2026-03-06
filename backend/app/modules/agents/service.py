@@ -34,6 +34,7 @@ class AgentService:
             is_public=is_public,
             status=AgentStatus.idle,
             wallet_id=agent_wallet.id,
+            created_by_user_id=user_id,
         )
         db.add(agent)
         db.flush()
