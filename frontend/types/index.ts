@@ -42,3 +42,20 @@ export type StakingPosition = {
   locked_tokens: number;
   unlock_time: string;
 };
+
+
+export type RuntimeLog = {
+  id: string;
+  agent_id: string;
+  input_text?: string;
+  output_text?: string;
+  status: string;
+  execution_cost: number;
+  tokens_used: number;
+  created_at: string;
+};
+
+export type RuntimeRunResponse = {
+  task_id: string;
+  status: string;
+};

@@ -95,3 +95,12 @@ export function useStake() {
 export function useUnstake() {
   return useMutationState(API.unstake);
 }
+
+
+export function useRunAgentRuntime() {
+  return useMutationState(({ agentId, input }: { agentId: string; input: string }) => API.runAgentRuntime(agentId, input));
+}
+
+export function useRuntimeLogs(agentId: string) {
+  return useQueryState(() => API.getRuntimeLogs(agentId), [agentId]);
+}

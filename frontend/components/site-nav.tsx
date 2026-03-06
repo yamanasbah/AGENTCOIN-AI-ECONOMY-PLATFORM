@@ -3,6 +3,7 @@ import Link from 'next/link';
 const links = [
   { href: '/', label: 'Dashboard' },
   { href: '/agents', label: 'Agents' },
+  { href: '/agents/run', label: 'Run Agent' },
   { href: '/marketplace', label: 'Marketplace' },
   { href: '/wallet', label: 'Wallet' },
   { href: '/staking', label: 'Staking' },

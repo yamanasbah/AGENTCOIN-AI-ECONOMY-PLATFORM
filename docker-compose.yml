@@ -38,7 +38,7 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    command: celery -A app.workers.celery_app.celery_app worker -l info
+    command: celery -A app.workers.celery_app.celery_app worker -l info -Q agentcoin,runtime
 
   frontend:
     build:
