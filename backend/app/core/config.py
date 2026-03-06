@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     token_min_stake: float = 50.0
     token_agent_creation_burn: float = 10.0
 
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

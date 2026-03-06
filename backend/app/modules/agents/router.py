@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.models.models import User
-from app.modules.agents.schemas import AgentCreateRequest, AgentRead, AgentUpdateRequest
+from app.modules.agents.schemas import AgentCreateRequest, AgentRead, AgentRunRequest, AgentRunResponse, AgentUpdateRequest
 from app.modules.agents.service import AgentService
 
 router = APIRouter()
@@ -61,3 +61,16 @@ def delete_agent(agent_id: UUID, db: Session = Depends(get_db), current_user: Us
     AgentService.delete_agent(db, agent)
     db.commit()
     return None
+
+
+@router.post("/{agent_id}/run", response_model=AgentRunResponse)
+def run_agent_endpoint(
+    agent_id: UUID,
+    payload: AgentRunRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    agent = _get_owned_agent(db, current_user, agent_id)
+    log = AgentService.run_agent(db, agent, payload.input, current_user.id)
+    db.commit()
+    return AgentRunResponse(result=log.output_payload or "", tokens_used=int(log.tokens_used), cost=float(log.tokens_consumed))

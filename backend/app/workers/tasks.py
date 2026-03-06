@@ -7,19 +7,25 @@ from app.workers.celery_app import celery_app
 
 
 @celery_app.task
-def run_agent(agent_id: str) -> str:
+def run_agent(agent_id: str, user_input: str = "") -> dict:
     db = SessionLocal()
     try:
         agent = db.query(ManagedAgent).filter(ManagedAgent.id == UUID(agent_id)).first()
         if not agent:
-            return "agent_not_found"
-        AgentRunner.execute(db, agent)
+            return {"status": "agent_not_found"}
+
+        log = AgentRunner.execute(db, agent, user_input=user_input)
         db.commit()
-        return "agent_execution_complete"
+        return {
+            "status": "agent_execution_complete",
+            "result": log.output_payload,
+            "tokens_used": float(log.tokens_used),
+            "cost": float(log.tokens_consumed),
+        }
     finally:
         db.close()
 
 
 @celery_app.task
-def run_agent_strategy(agent_id: str) -> str:
+def run_agent_strategy(agent_id: str) -> dict:
     return run_agent(agent_id)
