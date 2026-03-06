@@ -7,6 +7,7 @@ from app.db.session import Base
 from app.models import models  # noqa: F401
 from app.modules.agents import models as agent_models  # noqa: F401
 from app.modules.wallet import models as wallet_models  # noqa: F401
+from app.modules.agent_network import models as network_models  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

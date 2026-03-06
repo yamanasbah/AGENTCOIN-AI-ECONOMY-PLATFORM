@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.endpoints import admin, health, marketplace, realtime, token
 from app.modules.agent_runtime import router as runtime_router
+from app.modules.agent_network import router as network_router
 from app.modules.agents import router as agent_factory_router
 from app.modules.agents import store_router as agent_store_router
 from app.modules.analytics import router as analytics_router
@@ -24,3 +25,4 @@ api_router.include_router(realtime.router, prefix="/realtime", tags=["realtime"]
 api_router.include_router(notifications_router, prefix="/notifications", tags=["notifications"])
 api_router.include_router(analytics_router, prefix="/analytics", tags=["analytics"])
 api_router.include_router(runtime_router.router, prefix="/runtime", tags=["runtime"])
+api_router.include_router(network_router, tags=["agent-network"])

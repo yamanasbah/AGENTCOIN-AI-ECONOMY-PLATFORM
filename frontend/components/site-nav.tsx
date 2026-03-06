@@ -15,6 +15,9 @@ const links = [
   { href: '/api-keys', label: 'API Keys' },
   { href: '/notifications', label: 'Notifications' },
   { href: '/analytics', label: 'Analytics' },
+  { href: '/network', label: 'Agent Network' },
+  { href: '/network/agents', label: 'Network Agents' },
+  { href: '/network/workflows', label: 'Network Workflows' },
 ];
 
 export function SiteNav() {
