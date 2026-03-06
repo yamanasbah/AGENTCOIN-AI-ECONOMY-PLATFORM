@@ -47,6 +47,7 @@ class AgentRunRequest(BaseModel):
 
 
 class AgentRunResponse(BaseModel):
+    agent_id: UUID
     result: str
     tokens_used: int
-    cost: float
+    execution_cost: float
