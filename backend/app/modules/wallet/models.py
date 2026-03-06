@@ -12,6 +12,7 @@ from app.db.session import Base
 class WalletOwnerType(str, enum.Enum):
     user = "user"
     agent = "agent"
+    treasury = "treasury"
 
 
 class Wallet(Base):

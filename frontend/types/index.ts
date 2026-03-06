@@ -59,3 +59,18 @@ export type RuntimeRunResponse = {
   task_id: string;
   status: string;
 };
+
+
+export type AgentLeaderboardEntry = {
+  id: string;
+  name: string;
+  owner_user_id: number;
+  total_earnings: number;
+  total_runs: number;
+};
+
+export type CreatorStats = {
+  total_agents: number;
+  total_earnings: number;
+  total_runs: number;
+};

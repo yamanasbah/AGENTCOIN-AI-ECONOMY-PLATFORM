@@ -37,6 +37,11 @@ class ManagedAgent(Base):
     is_public: Mapped[bool] = mapped_column(default=False, nullable=False)
     status: Mapped[AgentStatus] = mapped_column(Enum(AgentStatus, name="agentlifecyclestatus"), default=AgentStatus.idle, nullable=False)
     wallet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("wallets.id"), nullable=False)
+    total_earnings: Mapped[float] = mapped_column(Numeric(18, 4), nullable=False, default=0)
+    total_runs: Mapped[int] = mapped_column(default=0, nullable=False)
+    average_rating: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False, default=0)
+    success_rate: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False, default=0)
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
 

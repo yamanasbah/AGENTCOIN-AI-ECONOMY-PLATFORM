@@ -5,7 +5,15 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.models.models import User
-from app.modules.agents.schemas import AgentCreateRequest, AgentRead, AgentRunRequest, AgentRunResponse, AgentUpdateRequest
+from app.modules.agents.schemas import (
+    AgentCreateRequest,
+    AgentLeaderboardEntry,
+    AgentRead,
+    AgentRunRequest,
+    AgentRunResponse,
+    AgentUpdateRequest,
+    CreatorStatsResponse,
+)
 from app.modules.agents.service import AgentService
 
 router = APIRouter()
@@ -41,6 +49,16 @@ def list_agents(db: Session = Depends(get_db), current_user: User = Depends(get_
     return AgentService.list_agents(db, current_user.tenant_id, current_user.id)
 
 
+@router.get("/leaderboard", response_model=list[AgentLeaderboardEntry])
+def get_agents_leaderboard(db: Session = Depends(get_db), limit: int = 20):
+    return AgentService.leaderboard(db, limit=limit)
+
+
+@router.get("/creator/stats", response_model=CreatorStatsResponse)
+def get_creator_stats(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return AgentService.creator_stats(db, current_user.tenant_id, current_user.id)
+
+
 @router.get("/{agent_id}", response_model=AgentRead)
 def get_agent(agent_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return _get_owned_agent(db, current_user, agent_id)
@@ -73,4 +91,9 @@ def run_agent_endpoint(
     agent = _get_owned_agent(db, current_user, agent_id)
     log = AgentService.run_agent(db, agent, payload.input, current_user.id)
     db.commit()
-    return AgentRunResponse(agent_id=agent.id, result=log.output_text or log.output_payload or "", tokens_used=int(log.tokens_used), execution_cost=float(log.execution_cost or log.tokens_consumed))
+    return AgentRunResponse(
+        agent_id=agent.id,
+        result=log.output_text or log.output_payload or "",
+        tokens_used=int(log.tokens_used),
+        execution_cost=float(log.execution_cost or log.tokens_consumed),
+    )

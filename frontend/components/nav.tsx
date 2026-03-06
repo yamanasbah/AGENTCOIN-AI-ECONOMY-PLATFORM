@@ -7,6 +7,8 @@ const links = [
   { href: '/wallet', label: 'Wallet' },
   { href: '/token', label: 'Token' },
   { href: '/marketplace', label: 'Marketplace' },
+  { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/creator', label: 'Creator' },
   { href: '/dashboard', label: 'Monitoring' },
   { href: '/admin', label: 'Admin' },
 ];
