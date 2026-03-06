@@ -1,4 +1,4 @@
-import { Agent, AgentLeaderboardEntry, AgentRun, APIKey, CreatorStats, InstalledAgent, MarketplaceAgent, NotificationItem, PlatformAnalytics, RuntimeLog, RuntimeRunResponse, StakingPosition, StoreAgent, StoreReview, Transaction, WalletBalance } from '@/types';
+import { AdminAnalytics, AdminTreasury, Agent, AgentFlag, AgentLeaderboardEntry, AgentRun, APIKey, CreatorStats, FeatureFlag, InstalledAgent, MarketplaceAgent, ModerationAgent, NotificationItem, PlatformAnalytics, RevenueSummary, RuntimeLog, RuntimeRunResponse, StakingPosition, StoreAgent, StoreReview, SystemHealth, Transaction, WalletBalance } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
 
@@ -44,6 +44,18 @@ export const API = {
   getNotifications: async () => api.get<NotificationItem[]>('/api/v1/notifications'),
   readNotification: async (id: number) => api.post<NotificationItem>(`/api/v1/notifications/read/${id}`),
   getPlatformAnalytics: async () => api.get<PlatformAnalytics>('/api/v1/analytics/platform'),
+
+  getAdminAnalytics: async () => api.get<AdminAnalytics>('/api/v1/admin/analytics'),
+  getAdminTreasury: async () => api.get<AdminTreasury>('/api/v1/admin/treasury'),
+  getRevenueSummary: async () => api.get<RevenueSummary>('/api/v1/admin/revenue'),
+  getPendingAgents: async () => api.get<ModerationAgent[]>('/api/v1/admin/agents/pending'),
+  approveAgent: async (id: string) => api.post(`/api/v1/admin/agents/${id}/approve`, {}),
+  rejectAgent: async (id: string) => api.post(`/api/v1/admin/agents/${id}/reject`, {}),
+  banAgent: async (id: string) => api.post(`/api/v1/admin/agents/${id}/ban`, {}),
+  getAgentFlags: async () => api.get<AgentFlag[]>('/api/v1/admin/agents/flags'),
+  getSystemHealth: async () => api.get<SystemHealth>('/api/v1/admin/system-health'),
+  getFeatures: async () => api.get<FeatureFlag[]>('/api/v1/admin/features'),
+  updateFeatureFlag: async (name: string, enabled: boolean) => request<FeatureFlag>(`/api/v1/admin/features/${name}`, { method: 'PATCH', body: JSON.stringify({ enabled }), headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' } }),
 
   getAgents: async () => api.get<Agent[]>('/api/v1/agents'),
   getAgent: async (id: string) => api.get<Agent>(`/api/v1/agents/${id}`),

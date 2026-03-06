@@ -2,9 +2,17 @@ import enum
 from datetime import datetime
 
 from sqlalchemy import JSON, Boolean, DateTime, Enum, Float, ForeignKey, Integer, Numeric, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
+
+
+class UserRole(str, enum.Enum):
+    user = "user"
+    creator = "creator"
+    admin = "admin"
+    super_admin = "super_admin"
 
 
 class AgentType(str, enum.Enum):
@@ -31,6 +39,7 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(120), unique=True, nullable=False, index=True)
     tenant_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="userrole"), nullable=False, default=UserRole.user)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -98,7 +107,6 @@ class EquitySnapshot(Base):
     captured_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
-
 class Commission(Base):
     __tablename__ = "commissions"
 
@@ -162,4 +170,33 @@ class Notification(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class PlatformTreasury(Base):
+    __tablename__ = "platform_treasury"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    wallet_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("wallets.id"), nullable=False, unique=True, index=True)
+    total_revenue: Mapped[float] = mapped_column(Numeric(18, 4), nullable=False, default=0)
+    total_distributed: Mapped[float] = mapped_column(Numeric(18, 4), nullable=False, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class AgentFlag(Base):
+    __tablename__ = "agent_flags"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    agent_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("managed_agents.id"), nullable=False, index=True)
+    reason: Mapped[str] = mapped_column(String(128), nullable=False)
+    flag_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class FeatureFlag(Base):
+    __tablename__ = "feature_flags"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False, unique=True, index=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)

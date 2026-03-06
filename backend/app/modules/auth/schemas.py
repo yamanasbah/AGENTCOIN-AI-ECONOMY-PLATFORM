@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field
 
+from app.models.models import UserRole
+
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -25,6 +27,7 @@ class UserProfileResponse(BaseModel):
     username: str
     created_at: datetime
     is_active: bool
+    role: UserRole
 
     class Config:
         from_attributes = True

@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token, get_password_hash, verify_password
-from app.models.models import User
+from app.models.models import User, UserRole
 
 
 class AuthService:
@@ -18,6 +18,7 @@ class AuthService:
             password_hash=get_password_hash(password),
             tenant_id=f"tenant_{username.lower()}",
             is_admin=False,
+            role=UserRole.user,
             is_active=True,
         )
         db.add(user)

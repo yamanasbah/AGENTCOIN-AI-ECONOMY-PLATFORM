@@ -132,3 +132,57 @@ export type PlatformAnalytics = {
   total_transactions: number;
   platform_revenue: number;
 };
+
+export type AdminAnalytics = {
+  total_users: number;
+  total_agents: number;
+  total_runs: number;
+  total_transactions: number;
+  total_tokens_staked: number;
+  total_marketplace_volume: number;
+  platform_revenue: number;
+};
+
+export type AdminTreasury = {
+  id: number;
+  wallet_id: string;
+  total_revenue: number;
+  total_distributed: number;
+  created_at: string;
+};
+
+export type RevenueSummary = {
+  platform_revenue: number;
+  total_distributed: number;
+  net_revenue: number;
+};
+
+export type ModerationAgent = {
+  id: string;
+  name: string;
+  owner_user_id: number;
+  agent_type: string;
+  agent_status: 'pending' | 'approved' | 'rejected' | 'banned';
+  created_at: string;
+};
+
+export type AgentFlag = {
+  id: number;
+  agent_id: string;
+  reason: string;
+  flag_count: number;
+  created_at: string;
+};
+
+export type SystemHealth = {
+  api_latency_ms: number;
+  queue_size: number;
+  agent_execution_rate: number;
+  wallet_transactions_per_minute: number;
+};
+
+export type FeatureFlag = {
+  name: string;
+  enabled: boolean;
+  created_at: string;
+};
