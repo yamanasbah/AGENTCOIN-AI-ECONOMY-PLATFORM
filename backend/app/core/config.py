@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
 
+    llm_provider: str = "openai"
+    llm_api_base: str = "https://api.openai.com/v1"
+    llm_api_key: str = ""
+    llm_model: str = "gpt-4o-mini"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
