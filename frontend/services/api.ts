@@ -1,12 +1,19 @@
-import { Agent, AgentLeaderboardEntry, AgentRun, CreatorStats, MarketplaceAgent, RuntimeLog, RuntimeRunResponse, StakingPosition, Transaction, WalletBalance } from '@/types';
+import { Agent, AgentLeaderboardEntry, AgentRun, APIKey, CreatorStats, MarketplaceAgent, NotificationItem, PlatformAnalytics, RuntimeLog, RuntimeRunResponse, StakingPosition, Transaction, WalletBalance } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
+
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const token = window.localStorage.getItem('agentcoin_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
       ...(options?.headers || {}),
     },
   });
@@ -15,6 +22,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(`API error ${res.status}`);
   }
 
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
@@ -25,6 +33,18 @@ export const api = {
 };
 
 export const API = {
+  register: async (payload: { email: string; username: string; password: string }) => api.post('/api/v1/auth/register', payload),
+  login: async (payload: { email: string; password: string }) => api.post<{ access_token: string; token_type: string }>('/api/v1/auth/login', payload),
+  me: async () => api.get('/api/v1/auth/me'),
+
+  getApiKeys: async () => api.get<APIKey[]>('/api/v1/api-keys'),
+  createApiKey: async (name: string) => api.post<APIKey>('/api/v1/api-keys/create', { name }),
+  deleteApiKey: async (id: number) => api.delete(`/api/v1/api-keys/${id}`),
+
+  getNotifications: async () => api.get<NotificationItem[]>('/api/v1/notifications'),
+  readNotification: async (id: number) => api.post<NotificationItem>(`/api/v1/notifications/read/${id}`),
+  getPlatformAnalytics: async () => api.get<PlatformAnalytics>('/api/v1/analytics/platform'),
+
   getAgents: async () => api.get<Agent[]>('/api/v1/agents'),
   getAgent: async (id: string) => api.get<Agent>(`/api/v1/agents/${id}`),
   getAgentLeaderboard: async () => api.get<AgentLeaderboardEntry[]>('/api/v1/agents/leaderboard'),

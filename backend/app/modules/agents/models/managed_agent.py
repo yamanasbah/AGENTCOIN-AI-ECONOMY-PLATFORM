@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Numeric, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -41,6 +41,8 @@ class ManagedAgent(Base):
     total_runs: Mapped[int] = mapped_column(default=0, nullable=False)
     average_rating: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False, default=0)
     success_rate: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False, default=0)
+    is_autonomous: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    run_interval_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=300)
     last_run_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -61,3 +63,15 @@ class AgentLog(Base):
     execution_time: Mapped[float] = mapped_column(Numeric(18, 6), nullable=False, default=0)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="success")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class AgentTask(Base):
+    __tablename__ = "agent_tasks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    agent_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("managed_agents.id"), nullable=False, index=True)
+    task_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

@@ -1,0 +1,5 @@
+'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { API } from '@/services/api';
+export default function LoginPage(){const[email,setEmail]=useState('');const[password,setPassword]=useState('');const[error,setError]=useState('');const router=useRouter();const onSubmit=async(e:React.FormEvent)=>{e.preventDefault();setError('');try{const r=await API.login({email,password});localStorage.setItem('agentcoin_token',r.access_token);router.push('/');}catch{setError('Login failed');}};return <form onSubmit={onSubmit} className='mx-auto max-w-md space-y-4 rounded-lg border border-zinc-800 p-6'><h2 className='text-2xl font-semibold'>Login</h2><input className='w-full rounded bg-zinc-900 p-2' placeholder='Email' value={email} onChange={(e)=>setEmail(e.target.value)}/><input className='w-full rounded bg-zinc-900 p-2' type='password' placeholder='Password' value={password} onChange={(e)=>setPassword(e.target.value)}/>{error&&<p className='text-red-400'>{error}</p>}<button className='rounded bg-emerald-600 px-4 py-2'>Sign in</button></form>;}

@@ -4,6 +4,8 @@ from uuid import UUID
 
 from app.db.session import SessionLocal
 from app.modules.agent_runtime import AgentRuntimeService
+from datetime import datetime
+
 from app.modules.agents.models import ManagedAgent
 from app.modules.wallet.models import WalletOwnerType
 from app.modules.wallet.service import WalletService
@@ -24,8 +26,11 @@ def run_agent(agent_id: str, input: str = "") -> dict:
         if available < float(execution_cost):
             return {"status": "insufficient_balance", "required": float(execution_cost), "available": available}
 
+
         runtime = AgentRuntimeService(db)
         log = runtime.run_agent(agent.id, input, caller_user_id=agent.owner_user_id, charge_tokens=True)
+        agent.total_runs = int(agent.total_runs or 0) + 1
+        agent.last_run_at = datetime.utcnow()
         db.commit()
 
         return {

@@ -11,6 +11,11 @@ const links = [
   { href: '/creator', label: 'Creator' },
   { href: '/dashboard', label: 'Monitoring' },
   { href: '/admin', label: 'Admin' },
+  { href: '/login', label: 'Login' },
+  { href: '/register', label: 'Register' },
+  { href: '/api-keys', label: 'API Keys' },
+  { href: '/notifications', label: 'Notifications' },
+  { href: '/analytics', label: 'Analytics' },
 ];
 
 export function Nav() {

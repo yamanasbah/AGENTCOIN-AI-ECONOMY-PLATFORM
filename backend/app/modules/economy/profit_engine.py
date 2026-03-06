@@ -6,6 +6,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.modules.agents.models import ManagedAgent
+from app.modules.notifications.service import NotificationService
 from app.modules.wallet.models import TransactionType, WalletOwnerType
 from app.modules.wallet.service import WalletService
 
@@ -21,6 +22,13 @@ class ProfitEngine:
         owner_amount = (amount_decimal * ProfitEngine.OWNER_SHARE).quantize(Decimal("0.0001"))
         platform_amount = (amount_decimal * ProfitEngine.PLATFORM_SHARE).quantize(Decimal("0.0001"))
         treasury_amount = amount_decimal - owner_amount - platform_amount
+        NotificationService.create_notification(
+            db,
+            agent.owner_user_id,
+            "Agent generated revenue",
+            f"Agent '{agent.name}' generated {amount_decimal} AGC in revenue.",
+        )
+
         return {
             "owner": owner_amount,
             "platform": platform_amount,
@@ -74,6 +82,13 @@ class ProfitEngine:
             to_wallet=treasury_wallet,
             amount=float(split["treasury"]),
             tx_type=TransactionType.execution,
+        )
+
+        NotificationService.create_notification(
+            db,
+            agent.owner_user_id,
+            "Agent generated revenue",
+            f"Agent '{agent.name}' generated {amount_decimal} AGC in revenue.",
         )
 
         return {

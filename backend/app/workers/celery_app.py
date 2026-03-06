@@ -12,3 +12,10 @@ celery_app.conf.task_routes = {
     "app.tasks.run_agent_task.*": {"queue": "runtime"},
     "app.workers.tasks.*": {"queue": "agentcoin"},
 }
+
+celery_app.conf.beat_schedule = {
+    "schedule-autonomous-agents": {
+        "task": "app.workers.tasks.schedule_autonomous_agents",
+        "schedule": 60.0,
+    }
+}

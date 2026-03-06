@@ -8,6 +8,7 @@ from app.api.deps import get_current_user, get_db
 from app.models.models import MarketplaceListing, User
 from app.modules.agents.models import ManagedAgent
 from app.modules.agents.runner import AgentRunner
+from app.modules.notifications.service import NotificationService
 from app.modules.wallet.models import TransactionType, WalletOwnerType
 from app.modules.wallet.service import WalletService
 
@@ -42,5 +43,18 @@ def buy_agent_service(payload: BuyAgentRequest, db: Session = Depends(get_db), c
 
     AgentRunner.execute(db, agent, caller_user_id=current_user.id)
     listing.usage_count += 1
+
+    NotificationService.create_notification(
+        db,
+        agent.owner_user_id,
+        "Marketplace purchase",
+        f"Your agent '{agent.name}' was purchased for {listing.price_per_run} AGC.",
+    )
+    NotificationService.create_notification(
+        db,
+        current_user.id,
+        "Marketplace purchase completed",
+        f"You purchased '{agent.name}' for {listing.price_per_run} AGC.",
+    )
     db.commit()
     return {"status": "ok", "agent_id": str(agent.id), "price_paid": listing.price_per_run}

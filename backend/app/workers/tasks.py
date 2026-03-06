@@ -1,17 +1,86 @@
-from app.tasks.run_agent_task import run_agent
+from datetime import datetime
+from uuid import UUID
+
+from app.db.session import SessionLocal
+from app.modules.agents.models import AgentTask, ManagedAgent
+from app.modules.notifications.service import NotificationService
 from app.workers.celery_app import celery_app
+
+
+@celery_app.task(name="app.workers.tasks.execute_agent_task")
+def execute_agent_task(task_id: int) -> dict:
+    from app.tasks.run_agent_task import run_agent
+
+    db = SessionLocal()
+    try:
+        task = db.query(AgentTask).filter(AgentTask.id == task_id).first()
+        if not task:
+            return {"status": "task_not_found"}
+
+        task.status = "running"
+        db.commit()
+
+        result = run_agent(str(task.agent_id), task.payload.get("input", ""))
+        task.status = "completed" if result.get("status") == "completed" else "failed"
+        task.finished_at = datetime.utcnow()
+
+        agent = db.query(ManagedAgent).filter(ManagedAgent.id == task.agent_id).first()
+        if agent:
+            NotificationService.create_notification(
+                db,
+                agent.owner_user_id,
+                "Agent task finished",
+                f"Task #{task.id} for agent '{agent.name}' ended with status: {task.status}.",
+            )
+        db.commit()
+        return {"task_id": task.id, **result}
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        return {"status": "failed", "error": str(exc)}
+    finally:
+        db.close()
+
+
+@celery_app.task(name="app.workers.tasks.schedule_autonomous_agents")
+def schedule_autonomous_agents() -> dict:
+    db = SessionLocal()
+    scheduled = 0
+    try:
+        now = datetime.utcnow()
+        agents = db.query(ManagedAgent).filter(ManagedAgent.is_autonomous.is_(True)).all()
+        for agent in agents:
+            if agent.last_run_at is None or (now - agent.last_run_at).total_seconds() >= agent.run_interval_seconds:
+                task = AgentTask(
+                    agent_id=agent.id,
+                    task_type="autonomous_run",
+                    payload={"input": ""},
+                    status="pending",
+                )
+                db.add(task)
+                db.flush()
+                execute_agent_task.delay(task.id)
+                scheduled += 1
+        db.commit()
+        return {"status": "scheduled", "count": scheduled}
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        return {"status": "failed", "error": str(exc)}
+    finally:
+        db.close()
 
 
 @celery_app.task(name="app.workers.tasks.run_agent_task")
 def run_agent_task(agent_id: str, user_input: str = "") -> dict:
+    from app.tasks.run_agent_task import run_agent
+
     return run_agent(agent_id, user_input)
 
 
 @celery_app.task(name="app.workers.tasks.run_agent")
 def run_agent_alias(agent_id: str, user_input: str = "") -> dict:
-    return run_agent(agent_id, user_input)
+    return run_agent_task(agent_id, user_input)
 
 
 @celery_app.task(name="app.workers.tasks.run_agent_strategy")
 def run_agent_strategy(agent_id: str) -> dict:
-    return run_agent(agent_id, "")
+    return run_agent_task(agent_id, "")

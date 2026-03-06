@@ -36,6 +36,11 @@ class AgentRead(BaseModel):
     is_public: bool
     status: AgentStatus
     wallet_id: UUID
+    is_autonomous: bool
+    run_interval_seconds: int
+    total_earnings: float
+    total_runs: int
+    last_run_at: datetime | None
     created_at: datetime
 
     class Config:
@@ -68,3 +73,8 @@ class CreatorStatsResponse(BaseModel):
     total_agents: int
     total_earnings: float
     total_runs: int
+
+
+class AgentAsyncRunResponse(BaseModel):
+    task_id: int
+    status: str
