@@ -1,47 +1,47 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
-
-const strategies = ['grid_trading', 'momentum', 'arbitrage', 'ai_trader'];
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCreateAgent } from '@/hooks/use-platform';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function CreateAgentPage() {
-  const [message, setMessage] = useState('');
+  const router = useRouter();
+  const create = useCreateAgent();
+  const [form, setForm] = useState({
+    name: '',
+    agent_type: '',
+    system_prompt: '',
+    tools: '',
+    execution_cost: '0',
+  });
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const payload = {
-      name: formData.get('name'),
-      description: formData.get('description'),
-      strategy_type: formData.get('strategy_type'),
-      initial_capital: Number(formData.get('initial_capital')),
-    };
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000/api/v1'}/agents/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`,
-      },
-      body: JSON.stringify(payload),
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await create.mutateAsync({
+      ...form,
+      tools: form.tools.split(',').map((t) => t.trim()).filter(Boolean),
+      execution_cost: Number(form.execution_cost),
     });
-    setMessage(response.ok ? 'Agent created successfully' : `Failed: ${response.status}`);
-  }
+    router.push('/agents');
+  };
 
   return (
-    <section className="max-w-xl space-y-4">
-      <h2 className="text-2xl font-semibold">Create Agent</h2>
-      <form onSubmit={onSubmit} className="space-y-3 rounded border border-slate-800 bg-slate-900 p-4">
-        <input name="name" placeholder="Name" className="w-full rounded bg-slate-800 p-2" required />
-        <textarea name="description" placeholder="Description" className="w-full rounded bg-slate-800 p-2" />
-        <select name="strategy_type" className="w-full rounded bg-slate-800 p-2" defaultValue={strategies[0]}>
-          {strategies.map((strategy) => (
-            <option key={strategy}>{strategy}</option>
-          ))}
-        </select>
-        <input name="initial_capital" type="number" min="1" step="0.01" placeholder="Initial capital" className="w-full rounded bg-slate-800 p-2" required />
-        <button className="rounded bg-cyan-500 px-3 py-2 font-medium text-slate-950">Create</button>
-      </form>
-      {message && <p className="text-sm text-slate-300">{message}</p>}
-    </section>
+    <Card className="max-w-2xl">
+      <CardHeader><CardTitle>Create Agent</CardTitle></CardHeader>
+      <CardContent>
+        <form onSubmit={onSubmit} className="space-y-3">
+          <Input placeholder="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          <Input placeholder="agent_type" value={form.agent_type} onChange={(e) => setForm({ ...form, agent_type: e.target.value })} required />
+          <Textarea placeholder="system_prompt" value={form.system_prompt} onChange={(e) => setForm({ ...form, system_prompt: e.target.value })} required />
+          <Input placeholder="tools (comma separated)" value={form.tools} onChange={(e) => setForm({ ...form, tools: e.target.value })} />
+          <Input type="number" placeholder="execution_cost" value={form.execution_cost} onChange={(e) => setForm({ ...form, execution_cost: e.target.value })} required />
+          <Button type="submit" disabled={create.isPending}>{create.isPending ? 'Creating...' : 'Create Agent'}</Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
