@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.models.models import User
 from app.modules.agents.schemas import (
+    AgentAsyncRunResponse,
     AgentCreateRequest,
     AgentLeaderboardEntry,
     AgentRead,
@@ -97,3 +98,15 @@ def run_agent_endpoint(
         tokens_used=int(log.tokens_used),
         execution_cost=float(log.execution_cost or log.tokens_consumed),
     )
+
+
+@router.post("/{agent_id}/run-async", response_model=AgentAsyncRunResponse)
+def run_agent_async_endpoint(
+    agent_id: UUID,
+    payload: AgentRunRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    agent = _get_owned_agent(db, current_user, agent_id)
+    task = AgentService.enqueue_task(db, agent, payload.input, "manual_run")
+    return AgentAsyncRunResponse(task_id=task.id, status=task.status)

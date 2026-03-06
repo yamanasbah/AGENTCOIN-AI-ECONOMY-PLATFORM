@@ -74,3 +74,28 @@ export type CreatorStats = {
   total_earnings: number;
   total_runs: number;
 };
+
+
+export type APIKey = {
+  id: number;
+  name: string;
+  key: string;
+  created_at: string;
+  is_active: boolean;
+};
+
+export type NotificationItem = {
+  id: number;
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+};
+
+export type PlatformAnalytics = {
+  total_users: number;
+  total_agents: number;
+  total_runs: number;
+  total_transactions: number;
+  platform_revenue: number;
+};

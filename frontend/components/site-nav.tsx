@@ -7,6 +7,11 @@ const links = [
   { href: '/marketplace', label: 'Marketplace' },
   { href: '/wallet', label: 'Wallet' },
   { href: '/staking', label: 'Staking' },
+  { href: '/login', label: 'Login' },
+  { href: '/register', label: 'Register' },
+  { href: '/api-keys', label: 'API Keys' },
+  { href: '/notifications', label: 'Notifications' },
+  { href: '/analytics', label: 'Analytics' },
 ];
 
 export function SiteNav() {

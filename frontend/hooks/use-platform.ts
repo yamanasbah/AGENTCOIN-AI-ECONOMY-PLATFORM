@@ -113,3 +113,28 @@ export function useLeaderboard() {
 export function useCreatorStats() {
   return useQueryState(API.getCreatorStats, []);
 }
+
+
+export function useNotifications() {
+  return useQueryState(API.getNotifications, []);
+}
+
+export function useReadNotification() {
+  return useMutationState(API.readNotification);
+}
+
+export function useAnalytics() {
+  return useQueryState(API.getPlatformAnalytics, []);
+}
+
+export function useApiKeys() {
+  return useQueryState(API.getApiKeys, []);
+}
+
+export function useCreateApiKey() {
+  return useMutationState(API.createApiKey);
+}
+
+export function useDeleteApiKey() {
+  return useMutationState(API.deleteApiKey);
+}

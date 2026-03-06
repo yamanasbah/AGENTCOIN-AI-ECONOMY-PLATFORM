@@ -3,10 +3,10 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.modules.agent_runtime import AgentRuntimeService
-from app.modules.agents.models import AgentStatus, ManagedAgent
+from app.modules.agents.models import AgentStatus, AgentTask, ManagedAgent
 from app.modules.wallet.models import WalletOwnerType
 from app.modules.wallet.service import WalletService
-from app.workers.tasks import run_agent_task
+from app.workers.tasks import execute_agent_task, run_agent_task
 
 
 class AgentService:
@@ -70,6 +70,16 @@ class AgentService:
     @staticmethod
     def trigger_execution(agent_id: UUID, user_input: str = "") -> None:
         run_agent_task.delay(str(agent_id), user_input)
+
+
+    @staticmethod
+    def enqueue_task(db: Session, agent: ManagedAgent, user_input: str, task_type: str = "manual_run") -> AgentTask:
+        task = AgentTask(agent_id=agent.id, task_type=task_type, payload={"input": user_input}, status="pending")
+        db.add(task)
+        db.commit()
+        db.refresh(task)
+        execute_agent_task.delay(task.id)
+        return task
 
     @staticmethod
     def run_agent(db: Session, agent: ManagedAgent, user_input: str, caller_user_id: int | None = None):
