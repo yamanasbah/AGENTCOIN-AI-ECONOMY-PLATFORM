@@ -23,6 +23,13 @@ class AgentStatus(str, enum.Enum):
     paused = "paused"
 
 
+class AgentModerationStatus(str, enum.Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+    banned = "banned"
+
+
 class ManagedAgent(Base):
     __tablename__ = "managed_agents"
 
@@ -36,6 +43,7 @@ class ManagedAgent(Base):
     capabilities: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
     is_public: Mapped[bool] = mapped_column(default=False, nullable=False)
     is_published: Mapped[bool] = mapped_column(default=False, nullable=False)
+    agent_status: Mapped[AgentModerationStatus] = mapped_column(Enum(AgentModerationStatus, name="agentmoderationstatus"), nullable=False, default=AgentModerationStatus.pending)
     price_per_run: Mapped[float] = mapped_column(Numeric(18, 4), nullable=False, default=1)
     price_per_month: Mapped[float] = mapped_column(Numeric(18, 4), nullable=False, default=0)
     category: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)

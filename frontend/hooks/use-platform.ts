@@ -167,3 +167,47 @@ export function useStoreReviews(agentId: string) {
 export function usePublishAgent() {
   return useMutationState(({ id, payload }: { id: string; payload: { title?: string; description?: string; category: string; tags: string[]; price_per_run: number; price_per_month: number } }) => API.publishAgent(id, payload));
 }
+
+export function useAdminAnalytics() {
+  return useQueryState(API.getAdminAnalytics, []);
+}
+
+export function useAdminTreasury() {
+  return useQueryState(API.getAdminTreasury, []);
+}
+
+export function useRevenueSummary() {
+  return useQueryState(API.getRevenueSummary, []);
+}
+
+export function usePendingAgents() {
+  return useQueryState(API.getPendingAgents, []);
+}
+
+export function useAgentFlags() {
+  return useQueryState(API.getAgentFlags, []);
+}
+
+export function useSystemHealth() {
+  return useQueryState(API.getSystemHealth, []);
+}
+
+export function useFeatureFlags() {
+  return useQueryState(API.getFeatures, []);
+}
+
+export function useApproveAgent(onSuccess?: () => void) {
+  return useMutationState(API.approveAgent, onSuccess);
+}
+
+export function useRejectAgent(onSuccess?: () => void) {
+  return useMutationState(API.rejectAgent, onSuccess);
+}
+
+export function useBanAgent(onSuccess?: () => void) {
+  return useMutationState(API.banAgent, onSuccess);
+}
+
+export function useUpdateFeatureFlag(onSuccess?: () => void) {
+  return useMutationState(({ name, enabled }: { name: string; enabled: boolean }) => API.updateFeatureFlag(name, enabled), onSuccess);
+}

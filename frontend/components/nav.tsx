@@ -11,6 +11,8 @@ const links = [
   { href: '/creator', label: 'Creator' },
   { href: '/dashboard', label: 'Monitoring' },
   { href: '/admin', label: 'Admin' },
+  { href: '/admin/agents', label: 'Admin Agents' },
+  { href: '/admin/system', label: 'Admin System' },
   { href: '/login', label: 'Login' },
   { href: '/register', label: 'Register' },
   { href: '/api-keys', label: 'API Keys' },
