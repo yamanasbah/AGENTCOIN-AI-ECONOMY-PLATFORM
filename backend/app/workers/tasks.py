@@ -1,10 +1,38 @@
 from datetime import datetime
-from uuid import UUID
 
 from app.db.session import SessionLocal
+from app.modules.agent_network.models import AgentSchedule
 from app.modules.agents.models import AgentTask, ManagedAgent
 from app.modules.notifications.service import NotificationService
 from app.workers.celery_app import celery_app
+
+
+def _cron_matches_now(cron_expression: str, now: datetime) -> bool:
+    parts = cron_expression.strip().split()
+    if len(parts) != 5:
+        return False
+
+    def match(token: str, value: int) -> bool:
+        if token == "*":
+            return True
+        if token.startswith("*/"):
+            step = int(token.split("/", 1)[1])
+            return value % step == 0
+        if "," in token:
+            return any(match(chunk.strip(), value) for chunk in token.split(","))
+        return token.isdigit() and int(token) == value
+
+    minute, hour, day, month, weekday = parts
+    weekday_value = (now.weekday() + 1) % 7
+    return all(
+        [
+            match(minute, now.minute),
+            match(hour, now.hour),
+            match(day, now.day),
+            match(month, now.month),
+            match(weekday, weekday_value),
+        ]
+    )
 
 
 @celery_app.task(name="app.workers.tasks.execute_agent_task")
@@ -23,6 +51,7 @@ def execute_agent_task(task_id: int) -> dict:
         result = run_agent(str(task.agent_id), task.payload.get("input", ""))
         task.status = "completed" if result.get("status") == "completed" else "failed"
         task.finished_at = datetime.utcnow()
+        task.completed_at = task.finished_at
 
         agent = db.query(ManagedAgent).filter(ManagedAgent.id == task.agent_id).first()
         if agent:
@@ -54,6 +83,34 @@ def schedule_autonomous_agents() -> dict:
                     agent_id=agent.id,
                     task_type="autonomous_run",
                     payload={"input": ""},
+                    status="pending",
+                )
+                db.add(task)
+                db.flush()
+                execute_agent_task.delay(task.id)
+                scheduled += 1
+        db.commit()
+        return {"status": "scheduled", "count": scheduled}
+    except Exception as exc:  # noqa: BLE001
+        db.rollback()
+        return {"status": "failed", "error": str(exc)}
+    finally:
+        db.close()
+
+
+@celery_app.task(name="app.workers.tasks.schedule_agent_network_tasks")
+def schedule_agent_network_tasks() -> dict:
+    db = SessionLocal()
+    scheduled = 0
+    try:
+        now = datetime.utcnow().replace(second=0, microsecond=0)
+        schedules = db.query(AgentSchedule).filter(AgentSchedule.enabled.is_(True)).all()
+        for schedule in schedules:
+            if _cron_matches_now(schedule.cron_expression, now):
+                task = AgentTask(
+                    agent_id=schedule.agent_id,
+                    task_type="scheduled_network_run",
+                    payload={"input": schedule.task_prompt},
                     status="pending",
                 )
                 db.add(task)

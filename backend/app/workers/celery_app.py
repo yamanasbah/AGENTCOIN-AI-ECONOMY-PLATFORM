@@ -17,5 +17,9 @@ celery_app.conf.beat_schedule = {
     "schedule-autonomous-agents": {
         "task": "app.workers.tasks.schedule_autonomous_agents",
         "schedule": 60.0,
-    }
+    },
+    "schedule-agent-network-tasks": {
+        "task": "app.workers.tasks.schedule_agent_network_tasks",
+        "schedule": 60.0,
+    },
 }
