@@ -73,4 +73,4 @@ def run_agent_endpoint(
     agent = _get_owned_agent(db, current_user, agent_id)
     log = AgentService.run_agent(db, agent, payload.input, current_user.id)
     db.commit()
-    return AgentRunResponse(result=log.output_payload or "", tokens_used=int(log.tokens_used), cost=float(log.tokens_consumed))
+    return AgentRunResponse(agent_id=agent.id, result=log.output_text or log.output_payload or "", tokens_used=int(log.tokens_used), execution_cost=float(log.execution_cost or log.tokens_consumed))
