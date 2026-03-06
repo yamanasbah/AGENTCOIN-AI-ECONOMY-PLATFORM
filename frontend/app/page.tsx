@@ -1,16 +1,32 @@
-import { MetricCard } from '@/components/metric-card';
+'use client';
 
-export default function HomePage() {
+import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAgents, useMarketplace, useWallet } from '@/hooks/use-platform';
+
+export default function DashboardPage() {
+  const { data: agents = [] } = useAgents();
+  const { data: wallet } = useWallet();
+  const { data: marketplace = [] } = useMarketplace();
+
   return (
-    <section className="space-y-6">
-      <h1 className="text-3xl font-bold">AgentCoin AI Economy</h1>
-      <p className="text-slate-300">Production-ready AI Agent creation and monetization infrastructure.</p>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <MetricCard title="Active Agents" value="517" />
-        <MetricCard title="Token Staked" value="125,000 AGC" />
-        <MetricCard title="Monthly Commission" value="2,100 AGC" />
-        <MetricCard title="Marketplace Listings" value="184" />
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card><CardHeader><CardDescription>Total Agents</CardDescription><CardTitle>{agents.length}</CardTitle></CardHeader></Card>
+        <Card><CardHeader><CardDescription>Wallet Balance</CardDescription><CardTitle>{wallet?.balance ?? 0} AGC</CardTitle></CardHeader></Card>
+        <Card><CardHeader><CardDescription>Recent Executions</CardDescription><CardTitle>{agents.reduce((a, b) => a + (b.runs || 0), 0)}</CardTitle></CardHeader></Card>
+        <Card><CardHeader><CardDescription>Marketplace Highlights</CardDescription><CardTitle>{marketplace.length}</CardTitle></CardHeader></Card>
       </div>
-    </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-3">
+          <Link href="/agents/create" className="rounded-md bg-emerald-500 px-4 py-2 font-medium text-black">Create Agent</Link>
+          <Link href="/marketplace" className="rounded-md border border-zinc-700 bg-zinc-900 px-4 py-2">Open Marketplace</Link>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
