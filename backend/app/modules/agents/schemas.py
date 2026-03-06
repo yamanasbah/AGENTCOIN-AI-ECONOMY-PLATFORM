@@ -40,3 +40,13 @@ class AgentRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AgentRunRequest(BaseModel):
+    input: str = Field(min_length=1)
+
+
+class AgentRunResponse(BaseModel):
+    result: str
+    tokens_used: int
+    cost: float
