@@ -99,3 +99,7 @@ docker compose exec backend alembic upgrade head
 ```
 
 Open `http://localhost`.
+
+## Strategy & Whitepaper Draft
+A complete crypto startup blueprint (token design, tokenomics, smart contract architecture, whitepaper draft, landing page copy, marketing/launch/community/fundraising strategy, and 12-month roadmap) is available at:
+- `docs/agentcoin-crypto-startup-blueprint.md`
