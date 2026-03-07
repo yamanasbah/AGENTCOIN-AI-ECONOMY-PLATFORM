@@ -211,3 +211,8 @@ export function useBanAgent(onSuccess?: () => void) {
 export function useUpdateFeatureFlag(onSuccess?: () => void) {
   return useMutationState(({ name, enabled }: { name: string; enabled: boolean }) => API.updateFeatureFlag(name, enabled), onSuccess);
 }
+
+
+export function useFinalizationReadiness() {
+  return useQueryState(API.getFinalizationReadiness, []);
+}
