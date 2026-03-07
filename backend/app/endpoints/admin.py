@@ -25,6 +25,29 @@ FLAG_FAILURE_THRESHOLD = 5
 FLAG_TOKENS_THRESHOLD = 50_000
 FLAG_BAD_REVIEW_THRESHOLD = 10
 
+PLATFORM_CAPABILITY_AREAS = [
+    "FastAPI backend",
+    "PostgreSQL database",
+    "Next.js frontend",
+    "Agent Factory",
+    "AI Agent Execution Engine",
+    "Agent Marketplace",
+    "AI Agent App Store",
+    "Wallet System",
+    "Token Economy",
+    "Staking",
+    "Profit Distribution",
+    "Platform Control Center",
+    "Admin Dashboard",
+    "Analytics",
+    "Notifications",
+    "Celery workers",
+    "AI Agent Network",
+    "Agent Collaboration",
+    "Agent Workflows",
+    "Agent Reputation System",
+]
+
 
 class FeatureToggleRequest(BaseModel):
     enabled: bool
@@ -297,3 +320,77 @@ def set_safe_mode(enabled: bool, _: User = Depends(get_current_super_admin_user)
 def update_global_risk_limits(max_global_drawdown: int, _: User = Depends(get_current_super_admin_user)):
     RISK_LIMITS["max_global_drawdown"] = max_global_drawdown
     return RISK_LIMITS
+
+
+@router.get("/finalization-readiness")
+def get_finalization_readiness(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_admin_user),
+):
+    from app.modules.agents.models import AgentLog
+
+    total_areas = len(PLATFORM_CAPABILITY_AREAS)
+    healthy_checks = 0
+    checks: list[dict[str, str | int | float | bool]] = []
+
+    try:
+        db.execute(select(func.now()))
+        checks.append({"name": "Database connectivity", "healthy": True, "detail": "PostgreSQL reachable"})
+        healthy_checks += 1
+    except Exception:
+        checks.append({"name": "Database connectivity", "healthy": False, "detail": "PostgreSQL unreachable"})
+
+    worker_count = len(celery_app.control.inspect(timeout=0.5).ping() or {})
+    worker_healthy = worker_count > 0
+    checks.append({
+        "name": "Celery worker availability",
+        "healthy": worker_healthy,
+        "detail": f"Detected {worker_count} responsive workers",
+    })
+    if worker_healthy:
+        healthy_checks += 1
+
+    published_agents = db.query(func.count(ManagedAgent.id)).filter(ManagedAgent.is_published.is_(True)).scalar() or 0
+    marketplace_healthy = int(published_agents) > 0
+    checks.append({
+        "name": "Marketplace inventory",
+        "healthy": marketplace_healthy,
+        "detail": f"{published_agents} published agents available",
+    })
+    if marketplace_healthy:
+        healthy_checks += 1
+
+    runtime_successes = (
+        db.query(func.count(AgentLog.id))
+        .filter(AgentLog.status == "success", AgentLog.created_at >= datetime.utcnow() - timedelta(days=1))
+        .scalar()
+        or 0
+    )
+    execution_healthy = int(runtime_successes) > 0
+    checks.append({
+        "name": "Execution engine activity",
+        "healthy": execution_healthy,
+        "detail": f"{runtime_successes} successful runs in the last 24h",
+    })
+    if execution_healthy:
+        healthy_checks += 1
+
+    features_count = db.query(func.count(FeatureFlag.name)).scalar() or 0
+    control_center_healthy = int(features_count) > 0
+    checks.append({
+        "name": "Control center feature flags",
+        "healthy": control_center_healthy,
+        "detail": f"{features_count} feature flags configured",
+    })
+    if control_center_healthy:
+        healthy_checks += 1
+
+    readiness_score = round((healthy_checks / len(checks)) * 100, 2) if checks else 0.0
+    return {
+        "capability_areas": PLATFORM_CAPABILITY_AREAS,
+        "total_capability_areas": total_areas,
+        "health_checks": checks,
+        "healthy_checks": healthy_checks,
+        "readiness_score": readiness_score,
+        "status": "ready_for_go_live" if readiness_score >= 80 else "needs_hardening",
+    }

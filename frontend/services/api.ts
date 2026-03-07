@@ -1,4 +1,4 @@
-import { AdminAnalytics, AdminTreasury, Agent, AgentFlag, AgentLeaderboardEntry, AgentRun, APIKey, CreatorStats, FeatureFlag, InstalledAgent, MarketplaceAgent, ModerationAgent, NotificationItem, PlatformAnalytics, RevenueSummary, RuntimeLog, RuntimeRunResponse, StakingPosition, StoreAgent, StoreReview, SystemHealth, Transaction, WalletBalance } from '@/types';
+import { AdminAnalytics, AdminTreasury, Agent, AgentFlag, AgentLeaderboardEntry, AgentRun, APIKey, CreatorStats, FeatureFlag, FinalizationReadiness, InstalledAgent, MarketplaceAgent, ModerationAgent, NotificationItem, PlatformAnalytics, RevenueSummary, RuntimeLog, RuntimeRunResponse, StakingPosition, StoreAgent, StoreReview, SystemHealth, Transaction, WalletBalance } from '@/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost';
 
@@ -55,6 +55,7 @@ export const API = {
   getAgentFlags: async () => api.get<AgentFlag[]>('/api/v1/admin/agents/flags'),
   getSystemHealth: async () => api.get<SystemHealth>('/api/v1/admin/system-health'),
   getFeatures: async () => api.get<FeatureFlag[]>('/api/v1/admin/features'),
+  getFinalizationReadiness: async () => api.get<FinalizationReadiness>('/api/v1/admin/finalization-readiness'),
   updateFeatureFlag: async (name: string, enabled: boolean) => request<FeatureFlag>(`/api/v1/admin/features/${name}`, { method: 'PATCH', body: JSON.stringify({ enabled }), headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' } }),
 
   getAgents: async () => api.get<Agent[]>('/api/v1/agents'),

@@ -186,3 +186,19 @@ export type FeatureFlag = {
   enabled: boolean;
   created_at: string;
 };
+
+
+export type FinalizationHealthCheck = {
+  name: string;
+  healthy: boolean;
+  detail: string;
+};
+
+export type FinalizationReadiness = {
+  capability_areas: string[];
+  total_capability_areas: number;
+  health_checks: FinalizationHealthCheck[];
+  healthy_checks: number;
+  readiness_score: number;
+  status: 'ready_for_go_live' | 'needs_hardening';
+};
